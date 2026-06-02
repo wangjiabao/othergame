@@ -1161,7 +1161,7 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		if "v_7" == vConfig.KeyName {
 			v7, _ = strconv.ParseFloat(vConfig.Value, 10)
 		}
-		if "g_8" == vConfig.KeyName {
+		if "v_8" == vConfig.KeyName {
 			v8, _ = strconv.ParseFloat(vConfig.Value, 10)
 		}
 		if "v_9" == vConfig.KeyName {
