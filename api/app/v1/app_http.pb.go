@@ -72,6 +72,7 @@ const OperationAppUserRewardList = "/api.app.v1.App/UserRewardList"
 const OperationAppUserStakeGitRewardList = "/api.app.v1.App/UserStakeGitRewardList"
 const OperationAppUserStakeGitStakeList = "/api.app.v1.App/UserStakeGitStakeList"
 const OperationAppUserStakeRewardList = "/api.app.v1.App/UserStakeRewardList"
+const OperationAppUserTeamDepositList = "/api.app.v1.App/UserTeamDepositList"
 const OperationAppWithdraw = "/api.app.v1.App/Withdraw"
 
 type AppHTTPServer interface {
@@ -169,6 +170,7 @@ type AppHTTPServer interface {
 	UserStakeGitStakeList(context.Context, *UserStakeGitStakeListRequest) (*UserStakeGitStakeListReply, error)
 	// UserStakeRewardList 果实放大器 获奖记录
 	UserStakeRewardList(context.Context, *UserStakeRewardListRequest) (*UserStakeRewardListReply, error)
+	UserTeamDepositList(context.Context, *UserTeamDepositListRequest) (*UserTeamDepositListReply, error)
 	// Withdraw 提现
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
 }
@@ -184,6 +186,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/user_recommend", _App_UserRecommend0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_recommend_l", _App_UserRecommendL0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_reward_list", _App_UserRewardList0_HTTP_Handler(srv))
+	r.GET("/api/app_server/user_team_deposit_list", _App_UserTeamDepositList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_land", _App_UserLand0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_stake_git_reward_list", _App_UserStakeGitRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_stake_git_stake_list", _App_UserStakeGitStakeList0_HTTP_Handler(srv))
@@ -404,6 +407,25 @@ func _App_UserRewardList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context)
 			return err
 		}
 		reply := out.(*UserRewardListReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_UserTeamDepositList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UserTeamDepositListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppUserTeamDepositList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UserTeamDepositList(ctx, req.(*UserTeamDepositListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserTeamDepositListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1386,6 +1408,7 @@ type AppHTTPClient interface {
 	UserStakeGitRewardList(ctx context.Context, req *UserStakeGitRewardListRequest, opts ...http.CallOption) (rsp *UserStakeGitRewardListReply, err error)
 	UserStakeGitStakeList(ctx context.Context, req *UserStakeGitStakeListRequest, opts ...http.CallOption) (rsp *UserStakeGitStakeListReply, err error)
 	UserStakeRewardList(ctx context.Context, req *UserStakeRewardListRequest, opts ...http.CallOption) (rsp *UserStakeRewardListReply, err error)
+	UserTeamDepositList(ctx context.Context, req *UserTeamDepositListRequest, opts ...http.CallOption) (rsp *UserTeamDepositListReply, err error)
 	Withdraw(ctx context.Context, req *WithdrawRequest, opts ...http.CallOption) (rsp *WithdrawReply, err error)
 }
 
@@ -2078,6 +2101,19 @@ func (c *AppHTTPClientImpl) UserStakeRewardList(ctx context.Context, in *UserSta
 	pattern := "/api/app_server/user_skate_reward_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppUserStakeRewardList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) UserTeamDepositList(ctx context.Context, in *UserTeamDepositListRequest, opts ...http.CallOption) (*UserTeamDepositListReply, error) {
+	var out UserTeamDepositListReply
+	pattern := "/api/app_server/user_team_deposit_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppUserTeamDepositList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

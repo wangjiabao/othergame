@@ -130,6 +130,18 @@ type Reward struct {
 	UpdatedAt time.Time
 }
 
+type EthRecordTwo struct {
+	ID            uint64
+	UserId        uint64
+	Amount        uint64
+	Last          uint64
+	Address       string
+	Coin          string
+	RecommendCode string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type RewardTwo struct {
 	ID        uint64
 	UserId    uint64
@@ -592,6 +604,8 @@ type UserRepo interface {
 	GetUsersLimitUsdtTotal(ctx context.Context) ([]*User, error)
 	GetUserRewardAdminPageCount(ctx context.Context, userId uint64, reason uint64) (int64, error)
 	GetUserRewardAdminPage(ctx context.Context, userId uint64, reason uint64, b *Pagination) ([]*Reward, error)
+	GetRecordPageTwo(ctx context.Context, recommendCode string, b *Pagination) ([]*EthRecordTwo, error)
+	GetRecordPageCountTwo(ctx context.Context, recommendCode string) (int64, error)
 }
 
 // AppUsecase is an app usecase.
@@ -3511,6 +3525,68 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 		Status: "ok",
 	}, nil
 }
+func (ac *AppUsecase) UserTeamDepositList(ctx context.Context, address string, req *pb.UserTeamDepositListRequest) (*pb.UserTeamDepositListReply, error) {
+	var (
+		count int64
+		err   error
+	)
+
+	var (
+		user *User
+	)
+	user, err = ac.userRepo.GetUserByAddress(ctx, address) // 查询用户
+	if nil != err || nil == user {
+		return &pb.UserTeamDepositListReply{
+			Status: "不存在用户",
+		}, nil
+	}
+
+	// 推荐
+	var (
+		userRecommend *UserRecommend
+	)
+	userRecommend, err = ac.userRepo.GetUserRecommendByUserId(ctx, user.ID)
+	if nil == userRecommend || nil != err {
+		return &pb.UserTeamDepositListReply{
+			Status: "查询推荐错误",
+		}, nil
+	}
+
+	var (
+		reward []*EthRecordTwo
+	)
+	count, err = ac.userRepo.GetRecordPageCountTwo(ctx, userRecommend.RecommendCode+"D"+strconv.FormatUint(user.ID, 10))
+	if nil != err {
+		return &pb.UserTeamDepositListReply{
+			Status: "不存在数据L，count",
+		}, nil
+	}
+
+	reward, err = ac.userRepo.GetRecordPageTwo(ctx, userRecommend.RecommendCode+"D"+strconv.FormatUint(user.ID, 10), &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 20,
+	})
+	if nil != err {
+		return &pb.UserTeamDepositListReply{
+			Status: "不存在数据L",
+		}, nil
+	}
+
+	res := make([]*pb.UserTeamDepositListReply_List, 0)
+	for _, v := range reward {
+		res = append(res, &pb.UserTeamDepositListReply_List{
+			Amount:    float64(v.Amount),
+			Address:   v.Address,
+			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return &pb.UserTeamDepositListReply{
+		Status: "ok",
+		Count:  uint64(count),
+		List:   res,
+	}, nil
+}
 
 func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *pb.UserRewardListRequest) (*pb.UserRewardListReply, error) {
 	res := make([]*pb.UserRewardListReply_List, 0)
@@ -3521,9 +3597,19 @@ func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *p
 	)
 
 	var (
+		user *User
+	)
+	user, err = ac.userRepo.GetUserByAddress(ctx, address) // 查询用户
+	if nil != err || nil == user {
+		return &pb.UserRewardListReply{
+			Status: "不存在用户",
+		}, nil
+	}
+
+	var (
 		reward []*Reward
 	)
-	count, err = ac.userRepo.GetUserRewardAdminPageCount(ctx, userId, 27)
+	count, err = ac.userRepo.GetUserRewardAdminPageCount(ctx, user.ID, 27)
 	if nil != err {
 		return &pb.UserRewardListReply{
 			Status: "不存在数据L，count",

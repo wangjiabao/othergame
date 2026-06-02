@@ -28,6 +28,7 @@ const (
 	App_UserRecommend_FullMethodName          = "/api.app.v1.App/UserRecommend"
 	App_UserRecommendL_FullMethodName         = "/api.app.v1.App/UserRecommendL"
 	App_UserRewardList_FullMethodName         = "/api.app.v1.App/UserRewardList"
+	App_UserTeamDepositList_FullMethodName    = "/api.app.v1.App/UserTeamDepositList"
 	App_UserLand_FullMethodName               = "/api.app.v1.App/UserLand"
 	App_UserStakeGitRewardList_FullMethodName = "/api.app.v1.App/UserStakeGitRewardList"
 	App_UserStakeGitStakeList_FullMethodName  = "/api.app.v1.App/UserStakeGitStakeList"
@@ -94,6 +95,7 @@ type AppClient interface {
 	UserRecommendL(ctx context.Context, in *UserRecommendLRequest, opts ...grpc.CallOption) (*UserRecommendLReply, error)
 	// 粮仓列表
 	UserRewardList(ctx context.Context, in *UserRewardListRequest, opts ...grpc.CallOption) (*UserRewardListReply, error)
+	UserTeamDepositList(ctx context.Context, in *UserTeamDepositListRequest, opts ...grpc.CallOption) (*UserTeamDepositListReply, error)
 	// 土地背包列表
 	UserLand(ctx context.Context, in *UserLandRequest, opts ...grpc.CallOption) (*UserLandReply, error)
 	// 粮仓列表
@@ -260,6 +262,15 @@ func (c *appClient) UserRecommendL(ctx context.Context, in *UserRecommendLReques
 func (c *appClient) UserRewardList(ctx context.Context, in *UserRewardListRequest, opts ...grpc.CallOption) (*UserRewardListReply, error) {
 	out := new(UserRewardListReply)
 	err := c.cc.Invoke(ctx, App_UserRewardList_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) UserTeamDepositList(ctx context.Context, in *UserTeamDepositListRequest, opts ...grpc.CallOption) (*UserTeamDepositListReply, error) {
+	out := new(UserTeamDepositListReply)
+	err := c.cc.Invoke(ctx, App_UserTeamDepositList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -690,6 +701,7 @@ type AppServer interface {
 	UserRecommendL(context.Context, *UserRecommendLRequest) (*UserRecommendLReply, error)
 	// 粮仓列表
 	UserRewardList(context.Context, *UserRewardListRequest) (*UserRewardListReply, error)
+	UserTeamDepositList(context.Context, *UserTeamDepositListRequest) (*UserTeamDepositListReply, error)
 	// 土地背包列表
 	UserLand(context.Context, *UserLandRequest) (*UserLandReply, error)
 	// 粮仓列表
@@ -804,6 +816,9 @@ func (UnimplementedAppServer) UserRecommendL(context.Context, *UserRecommendLReq
 }
 func (UnimplementedAppServer) UserRewardList(context.Context, *UserRewardListRequest) (*UserRewardListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserRewardList not implemented")
+}
+func (UnimplementedAppServer) UserTeamDepositList(context.Context, *UserTeamDepositListRequest) (*UserTeamDepositListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserTeamDepositList not implemented")
 }
 func (UnimplementedAppServer) UserLand(context.Context, *UserLandRequest) (*UserLandReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserLand not implemented")
@@ -1111,6 +1126,24 @@ func _App_UserRewardList_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).UserRewardList(ctx, req.(*UserRewardListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_UserTeamDepositList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserTeamDepositListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).UserTeamDepositList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_UserTeamDepositList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).UserTeamDepositList(ctx, req.(*UserTeamDepositListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1967,6 +2000,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserRewardList",
 			Handler:    _App_UserRewardList_Handler,
+		},
+		{
+			MethodName: "UserTeamDepositList",
+			Handler:    _App_UserTeamDepositList_Handler,
 		},
 		{
 			MethodName: "UserLand",

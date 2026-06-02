@@ -69,6 +69,18 @@ type User struct {
 	OpenBoxAmount    float64   `gorm:"type:decimal(65,20);not null"`
 }
 
+type EthRecordTwo struct {
+	ID            uint64    `gorm:"primarykey;type:int;comment:主键"`
+	UserId        uint64    `gorm:"type:int;not null;comment:用户id"`
+	Amount        uint64    `gorm:"type:bigint(20);not null;"`
+	Last          uint64    `gorm:"type:bigint(20);not null;"`
+	Address       string    `gorm:"type:varchar(100);not null;default:'default';"`
+	Coin          string    `gorm:"type:varchar(100);"`
+	RecommendCode string    `gorm:"type:varchar(1000);not null"`
+	CreatedAt     time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt     time.Time `gorm:"type:datetime;not null"`
+}
+
 type UserRecommend struct {
 	ID            uint64    `gorm:"primarykey;type:int"`
 	UserId        uint64    `gorm:"type:int;not null"`
@@ -4615,6 +4627,48 @@ func (u *UserRepo) GetUserRewardAdminPageCount(ctx context.Context, userId uint6
 	}
 
 	return count, nil
+}
+
+func (u *UserRepo) GetRecordPageCountTwo(ctx context.Context, recommendCode string) (int64, error) {
+	var count int64
+	instance := u.data.DB(ctx).Table("eth_record_two").Where("recommend_code Like ?", recommendCode+"%")
+
+	if err := instance.Count(&count).Error; err != nil {
+		return count, errors.New(500, "record ERROR", err.Error())
+	}
+
+	return count, nil
+}
+
+// GetRecordPageTwo .
+func (u *UserRepo) GetRecordPageTwo(ctx context.Context, recommendCode string, b *biz.Pagination) ([]*biz.EthRecordTwo, error) {
+	var eth []*EthRecordTwo
+
+	res := make([]*biz.EthRecordTwo, 0)
+
+	instance := u.data.DB(ctx).Table("eth_record_two").Where("recommend_code Like ?", recommendCode+"%").Order("id desc")
+
+	if err := instance.Order("id desc").Scopes(Paginate(b.PageNum, b.PageSize)).Find(&eth).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, nil
+		}
+
+		return nil, errors.New(500, "ethRecord ERROR", err.Error())
+	}
+
+	for _, v := range eth {
+		res = append(res, &biz.EthRecordTwo{
+			ID:        v.ID,
+			UserId:    v.UserId,
+			Amount:    v.Amount,
+			Last:      v.Last,
+			Address:   v.Address,
+			CreatedAt: v.CreatedAt,
+			Coin:      v.Coin,
+		})
+	}
+
+	return res, nil
 }
 
 // GetUserRewardAdminByCodePage .
