@@ -121,7 +121,7 @@ type StakeGit struct {
 type Reward struct {
 	ID        uint64
 	UserId    uint64
-	reason    uint64
+	Reason    uint64
 	One       uint64
 	Two       uint64
 	Three     float64
