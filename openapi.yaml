@@ -1229,6 +1229,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/app_server/user_reward_list:
+        get:
+            tags:
+                - App
+            description: 粮仓列表
+            operationId: App_UserRewardList
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserRewardListReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/app_server/user_skate_reward_list:
         get:
             tags:
@@ -2531,6 +2555,32 @@ components:
                 address:
                     type: string
                 level:
+                    type: string
+                createdAt:
+                    type: string
+        UserRewardListReply:
+            type: object
+            properties:
+                status:
+                    type: string
+                count:
+                    type: string
+                list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserRewardListReply_List'
+        UserRewardListReply_List:
+            type: object
+            properties:
+                amount:
+                    type: number
+                    format: double
+                ispayAmount:
+                    type: number
+                    format: double
+                address:
+                    type: string
+                vip:
                     type: string
                 createdAt:
                     type: string

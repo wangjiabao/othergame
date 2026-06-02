@@ -27,6 +27,7 @@ const (
 	App_UserBuyL_FullMethodName               = "/api.app.v1.App/UserBuyL"
 	App_UserRecommend_FullMethodName          = "/api.app.v1.App/UserRecommend"
 	App_UserRecommendL_FullMethodName         = "/api.app.v1.App/UserRecommendL"
+	App_UserRewardList_FullMethodName         = "/api.app.v1.App/UserRewardList"
 	App_UserLand_FullMethodName               = "/api.app.v1.App/UserLand"
 	App_UserStakeGitRewardList_FullMethodName = "/api.app.v1.App/UserStakeGitRewardList"
 	App_UserStakeGitStakeList_FullMethodName  = "/api.app.v1.App/UserStakeGitStakeList"
@@ -91,6 +92,8 @@ type AppClient interface {
 	UserRecommend(ctx context.Context, in *UserRecommendRequest, opts ...grpc.CallOption) (*UserRecommendReply, error)
 	// L1L2L3内容
 	UserRecommendL(ctx context.Context, in *UserRecommendLRequest, opts ...grpc.CallOption) (*UserRecommendLReply, error)
+	// 粮仓列表
+	UserRewardList(ctx context.Context, in *UserRewardListRequest, opts ...grpc.CallOption) (*UserRewardListReply, error)
 	// 土地背包列表
 	UserLand(ctx context.Context, in *UserLandRequest, opts ...grpc.CallOption) (*UserLandReply, error)
 	// 粮仓列表
@@ -248,6 +251,15 @@ func (c *appClient) UserRecommend(ctx context.Context, in *UserRecommendRequest,
 func (c *appClient) UserRecommendL(ctx context.Context, in *UserRecommendLRequest, opts ...grpc.CallOption) (*UserRecommendLReply, error) {
 	out := new(UserRecommendLReply)
 	err := c.cc.Invoke(ctx, App_UserRecommendL_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) UserRewardList(ctx context.Context, in *UserRewardListRequest, opts ...grpc.CallOption) (*UserRewardListReply, error) {
+	out := new(UserRewardListReply)
+	err := c.cc.Invoke(ctx, App_UserRewardList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -676,6 +688,8 @@ type AppServer interface {
 	UserRecommend(context.Context, *UserRecommendRequest) (*UserRecommendReply, error)
 	// L1L2L3内容
 	UserRecommendL(context.Context, *UserRecommendLRequest) (*UserRecommendLReply, error)
+	// 粮仓列表
+	UserRewardList(context.Context, *UserRewardListRequest) (*UserRewardListReply, error)
 	// 土地背包列表
 	UserLand(context.Context, *UserLandRequest) (*UserLandReply, error)
 	// 粮仓列表
@@ -787,6 +801,9 @@ func (UnimplementedAppServer) UserRecommend(context.Context, *UserRecommendReque
 }
 func (UnimplementedAppServer) UserRecommendL(context.Context, *UserRecommendLRequest) (*UserRecommendLReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserRecommendL not implemented")
+}
+func (UnimplementedAppServer) UserRewardList(context.Context, *UserRewardListRequest) (*UserRewardListReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserRewardList not implemented")
 }
 func (UnimplementedAppServer) UserLand(context.Context, *UserLandRequest) (*UserLandReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserLand not implemented")
@@ -1076,6 +1093,24 @@ func _App_UserRecommendL_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).UserRecommendL(ctx, req.(*UserRecommendLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_UserRewardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserRewardListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).UserRewardList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_UserRewardList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).UserRewardList(ctx, req.(*UserRewardListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1928,6 +1963,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserRecommendL",
 			Handler:    _App_UserRecommendL_Handler,
+		},
+		{
+			MethodName: "UserRewardList",
+			Handler:    _App_UserRewardList_Handler,
 		},
 		{
 			MethodName: "UserLand",

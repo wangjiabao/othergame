@@ -68,6 +68,7 @@ const OperationAppUserOrderListTwo = "/api.app.v1.App/UserOrderListTwo"
 const OperationAppUserRankList = "/api.app.v1.App/UserRankList"
 const OperationAppUserRecommend = "/api.app.v1.App/UserRecommend"
 const OperationAppUserRecommendL = "/api.app.v1.App/UserRecommendL"
+const OperationAppUserRewardList = "/api.app.v1.App/UserRewardList"
 const OperationAppUserStakeGitRewardList = "/api.app.v1.App/UserStakeGitRewardList"
 const OperationAppUserStakeGitStakeList = "/api.app.v1.App/UserStakeGitStakeList"
 const OperationAppUserStakeRewardList = "/api.app.v1.App/UserStakeRewardList"
@@ -160,6 +161,8 @@ type AppHTTPServer interface {
 	UserRecommend(context.Context, *UserRecommendRequest) (*UserRecommendReply, error)
 	// UserRecommendL L1L2L3内容
 	UserRecommendL(context.Context, *UserRecommendLRequest) (*UserRecommendLReply, error)
+	// UserRewardList 粮仓列表
+	UserRewardList(context.Context, *UserRewardListRequest) (*UserRewardListReply, error)
 	// UserStakeGitRewardList 粮仓列表
 	UserStakeGitRewardList(context.Context, *UserStakeGitRewardListRequest) (*UserStakeGitRewardListReply, error)
 	// UserStakeGitStakeList 粮仓列表
@@ -180,6 +183,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/user_buy_l", _App_UserBuyL0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_recommend", _App_UserRecommend0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_recommend_l", _App_UserRecommendL0_HTTP_Handler(srv))
+	r.GET("/api/app_server/user_reward_list", _App_UserRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_land", _App_UserLand0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_stake_git_reward_list", _App_UserStakeGitRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_stake_git_stake_list", _App_UserStakeGitStakeList0_HTTP_Handler(srv))
@@ -381,6 +385,25 @@ func _App_UserRecommendL0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context)
 			return err
 		}
 		reply := out.(*UserRecommendLReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_UserRewardList0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UserRewardListRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppUserRewardList)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UserRewardList(ctx, req.(*UserRewardListRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserRewardListReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1359,6 +1382,7 @@ type AppHTTPClient interface {
 	UserRankList(ctx context.Context, req *UserOrderListRequest, opts ...http.CallOption) (rsp *UserOrderListReply, err error)
 	UserRecommend(ctx context.Context, req *UserRecommendRequest, opts ...http.CallOption) (rsp *UserRecommendReply, err error)
 	UserRecommendL(ctx context.Context, req *UserRecommendLRequest, opts ...http.CallOption) (rsp *UserRecommendLReply, err error)
+	UserRewardList(ctx context.Context, req *UserRewardListRequest, opts ...http.CallOption) (rsp *UserRewardListReply, err error)
 	UserStakeGitRewardList(ctx context.Context, req *UserStakeGitRewardListRequest, opts ...http.CallOption) (rsp *UserStakeGitRewardListReply, err error)
 	UserStakeGitStakeList(ctx context.Context, req *UserStakeGitStakeListRequest, opts ...http.CallOption) (rsp *UserStakeGitStakeListReply, err error)
 	UserStakeRewardList(ctx context.Context, req *UserStakeRewardListRequest, opts ...http.CallOption) (rsp *UserStakeRewardListReply, err error)
@@ -2002,6 +2026,19 @@ func (c *AppHTTPClientImpl) UserRecommendL(ctx context.Context, in *UserRecommen
 	pattern := "/api/app_server/user_recommend_l"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppUserRecommendL))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) UserRewardList(ctx context.Context, in *UserRewardListRequest, opts ...http.CallOption) (*UserRewardListReply, error) {
+	var out UserRewardListReply
+	pattern := "/api/app_server/user_reward_list"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppUserRewardList))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

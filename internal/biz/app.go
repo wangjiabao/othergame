@@ -590,6 +590,8 @@ type UserRepo interface {
 	GetSumEthTwoThree(ctx context.Context) (uint64, error)
 	GetSumEthTwoFour(ctx context.Context) (uint64, error)
 	GetUsersLimitUsdtTotal(ctx context.Context) ([]*User, error)
+	GetUserRewardAdminPageCount(ctx context.Context, userId uint64, reason uint64) (int64, error)
+	GetUserRewardAdminPage(ctx context.Context, userId uint64, reason uint64, b *Pagination) ([]*Reward, error)
 }
 
 // AppUsecase is an app usecase.
@@ -3507,6 +3509,78 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 		Count:  8,
 		List:   res,
 		Status: "ok",
+	}, nil
+}
+
+func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *pb.UserRewardListRequest) (*pb.UserRewardListReply, error) {
+	res := make([]*pb.UserRewardListReply_List, 0)
+	var (
+		count  int64
+		err    error
+		userId uint64
+	)
+
+	var (
+		reward []*Reward
+	)
+	count, err = ac.userRepo.GetUserRewardAdminPageCount(ctx, userId, 27)
+	if nil != err {
+		return &pb.UserRewardListReply{
+			Status: "不存在数据L，count",
+		}, nil
+	}
+
+	reward, err = ac.userRepo.GetUserRewardAdminPage(ctx, userId, 27, &Pagination{
+		PageNum:  int(req.Page),
+		PageSize: 20,
+	})
+	if nil != err {
+		return &pb.UserRewardListReply{
+			Status: "不存在数据L",
+		}, nil
+	}
+
+	userIds := make([]uint64, 0)
+	for _, v := range reward {
+		userIds = append(userIds, v.UserId)
+		if 0 >= v.One {
+			continue
+		}
+
+		userIds = append(userIds, v.One)
+	}
+
+	usersMap := make(map[uint64]*User, 0)
+	if 0 < len(userIds) {
+		usersMap, err = ac.userRepo.GetUserByUserIds(ctx, userIds)
+		if nil != err {
+			return &pb.UserRewardListReply{
+				Status: "不存在数据L",
+			}, nil
+		}
+	}
+
+	for _, v := range reward {
+		addressTmp := ""
+		if 0 < v.One {
+			if _, ok := usersMap[v.One]; ok {
+				addressTmp = usersMap[v.One].Address
+			}
+		}
+
+		res = append(res, &pb.UserRewardListReply_List{
+			Amount:      v.Amount,
+			IspayAmount: v.Three,
+			Address:     addressTmp,
+			Vip:         v.Two,
+			CreatedAt:   v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return &pb.UserRewardListReply{
+		Status: "ok",
+		Count:  uint64(count),
+		List:   res,
 	}, nil
 }
 

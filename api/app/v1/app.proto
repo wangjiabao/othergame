@@ -64,6 +64,13 @@ service App {
 		};
 	};
 
+	// 粮仓列表
+	rpc UserRewardList (UserRewardListRequest) returns (UserRewardListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/user_reward_list"
+		};
+	};
+
 	// 土地背包列表
 	rpc UserLand (UserLandRequest) returns (UserLandReply) {
 		option (google.api.http) = {
@@ -655,6 +662,24 @@ message UserLandReply {
 		string eContent = 12;
 		string addressTwo = 13;
 		uint64 rentPlant = 14;
+	}
+}
+
+message UserRewardListRequest {
+	uint64 page = 1; // 页数
+}
+
+message UserRewardListReply {
+	string status = 1; // 状态为字符串"ok"时接口正常，其他情况忽略，弹出显示该字段文案即可
+
+	uint64 count = 2; // 总个数，每页20个
+	repeated List list = 3;
+	message List {
+		double amount = 2; // usdt收益
+		double ispayAmount = 6; // ispay收益
+		string address = 4; // 下级地址
+		uint64 vip = 5; // 当前级别
+		string createdAt = 3; // 日期
 	}
 }
 
