@@ -3450,7 +3450,7 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 	var (
 		yAmount uint64
 	)
-	yAmount, err = ac.userRepo.GetSumEthTwo(ctx)
+	yAmount, err = ac.userRepo.GetSumEthTwoFour(ctx)
 	if nil != err {
 		fmt.Println("今日分红错误用户获取失败3")
 		return &pb.UserOrderListReply{
@@ -3462,7 +3462,7 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 	var (
 		yAmountTwo uint64
 	)
-	yAmountTwo, err = ac.userRepo.GetSumEthTwoThree(ctx)
+	yAmountTwo, err = ac.userRepo.GetSumEthTwo(ctx)
 	if nil != err {
 		fmt.Println("今日分红错误用户获取失败4")
 		return &pb.UserOrderListReply{
