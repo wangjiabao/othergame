@@ -2489,6 +2489,9 @@ components:
                 git:
                     type: number
                     format: double
+                rate:
+                    type: number
+                    format: double
                 red:
                     type: string
         UserRecommendLReply:

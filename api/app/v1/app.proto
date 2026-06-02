@@ -947,6 +947,7 @@ message UserOrderListReply {
 	message List {
 		string address = 1; // 地址
 		double git = 2; // git
+		double rate = 4; // git
 		uint64 red = 3;
 	}
 }

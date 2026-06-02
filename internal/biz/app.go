@@ -3385,8 +3385,17 @@ func (ac *AppUsecase) UserIndexList(ctx context.Context, address string, req *pb
 func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.UserOrderListRequest) (*pb.UserOrderListReply, error) {
 
 	var (
-		err   error
-		users []*User
+		err     error
+		users   []*User
+		g1      float64
+		g2      float64
+		g3      float64
+		g4      float64
+		g5      float64
+		g6      float64
+		g7      float64
+		g8      float64
+		configs []*Config
 	)
 	users, err = ac.userRepo.GetUsersLimitUsdtTotal(ctx)
 	if nil != err {
@@ -3395,12 +3404,102 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 		}, nil
 	}
 
+	// 配置
+	configs, err = ac.userRepo.GetConfigByKeys(ctx,
+		"g_1",
+		"g_2",
+		"g_3",
+		"g_4",
+		"g_5",
+		"g_6",
+		"g_7",
+		"g_8",
+	)
+	if nil != err || nil == configs {
+		return &pb.UserOrderListReply{
+			Status: "查询错误",
+		}, nil
+	}
+	for _, vConfig := range configs {
+		if "g_1" == vConfig.KeyName {
+			g1, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_2" == vConfig.KeyName {
+			g2, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_3" == vConfig.KeyName {
+			g3, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_4" == vConfig.KeyName {
+			g4, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_5" == vConfig.KeyName {
+			g5, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_6" == vConfig.KeyName {
+			g6, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_7" == vConfig.KeyName {
+			g7, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_8" == vConfig.KeyName {
+			g8, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+	}
+
+	var (
+		yAmount uint64
+	)
+	yAmount, err = ac.userRepo.GetSumEthTwo(ctx)
+	if nil != err {
+		fmt.Println("今日分红错误用户获取失败3")
+		return &pb.UserOrderListReply{
+			Status: "查询错误",
+		}, nil
+	}
+
+	fmt.Println("昨日入u", yAmount)
+	var (
+		yAmountTwo uint64
+	)
+	yAmountTwo, err = ac.userRepo.GetSumEthTwoThree(ctx)
+	if nil != err {
+		fmt.Println("今日分红错误用户获取失败4")
+		return &pb.UserOrderListReply{
+			Status: "查询错误",
+		}, nil
+	}
+	fmt.Println("前日入u", yAmountTwo)
+
+	tmpTotal := float64(yAmount)*0.03 + float64(yAmountTwo)*0.02
+	fmt.Println("合计", tmpTotal)
+
 	res := make([]*pb.UserOrderListReply_List, 0)
-	for _, v := range users {
+	for k, v := range users {
+		var tmpReward float64
+		if 0 == k {
+			tmpReward = g1 * tmpTotal
+		} else if 1 == k {
+			tmpReward = g2 * tmpTotal
+		} else if 2 == k {
+			tmpReward = g3 * tmpTotal
+		} else if 3 == k {
+			tmpReward = g4 * tmpTotal
+		} else if 4 == k {
+			tmpReward = g5 * tmpTotal
+		} else if 5 == k {
+			tmpReward = g6 * tmpTotal
+		} else if 6 == k {
+			tmpReward = g7 * tmpTotal
+		} else if 7 == k {
+			tmpReward = g8 * tmpTotal
+		}
+
 		res = append(res, &pb.UserOrderListReply_List{
 			Address: v.Address,
 			Git:     v.AmountUsdtTotal,
 			Red:     0,
+			Rate:    tmpReward,
 		})
 	}
 
