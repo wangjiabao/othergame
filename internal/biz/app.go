@@ -7140,6 +7140,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 			configs      []*Config
 			stakePrice   float64
 			stakePriceOn uint64
+			stakeRateNew float64
 			//rentRateTwo   float64
 			//rentRateThree float64
 		)
@@ -7148,6 +7149,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 		configs, err = ac.userRepo.GetConfigByKeys(ctx,
 			"stake_price",
 			"stake_price_on",
+			"stake_rate_new",
 		)
 		if nil != err || nil == configs {
 			return &pb.StakeGitReply{
@@ -7160,6 +7162,9 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 			}
 			if "stake_price_on" == vConfig.KeyName {
 				stakePriceOn, _ = strconv.ParseUint(vConfig.Value, 10, 64)
+			}
+			if "stake_rate_new" == vConfig.KeyName {
+				stakeRateNew, _ = strconv.ParseFloat(vConfig.Value, 10)
 			}
 		}
 
@@ -7197,7 +7202,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 		if 1 == stakePriceOn {
 			usdtAmount = req.SendBody.Amount * stakePrice
 			usdtAmountOrigin = usdtAmount
-			usdtAmount = usdtAmount * 1.5 / 30
+			usdtAmount = usdtAmount * stakeRateNew / 30
 			if 0.00000001 >= usdtAmount {
 				return &pb.StakeGitReply{
 					Status: "获取交易池数据失败，价格错误",
@@ -7206,7 +7211,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 		} else {
 			usdtAmount = req.SendBody.Amount * tmp0 / tmp1
 			usdtAmountOrigin = usdtAmount
-			usdtAmount = usdtAmount * 1.5 / 30
+			usdtAmount = usdtAmount * stakeRateNew / 30
 			if 0.00000001 >= usdtAmount {
 				return &pb.StakeGitReply{
 					Status: "获取交易池数据失败，价格错误",
