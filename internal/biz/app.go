@@ -586,6 +586,10 @@ type UserRepo interface {
 	GetRewardByTwo(ctx context.Context, twoIds []uint64, userId uint64) (map[uint64]*Reward, error)
 	GetUserRewardFourT(ctx context.Context, userId uint64) (float64, error)
 	GetUserRewardFour(ctx context.Context, userId uint64) (float64, error)
+	GetSumEthTwo(ctx context.Context) (uint64, error)
+	GetSumEthTwoThree(ctx context.Context) (uint64, error)
+	GetSumEthTwoFour(ctx context.Context) (uint64, error)
+	GetUsersLimitUsdtTotal(ctx context.Context) ([]*User, error)
 }
 
 // AppUsecase is an app usecase.
@@ -909,6 +913,16 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		two                float64
 		three              float64
 		stakeIspayOne      float64
+		v1                 float64
+		v2                 float64
+		v3                 float64
+		v4                 float64
+		v5                 float64
+		v6                 float64
+		v7                 float64
+		v8                 float64
+		v9                 float64
+		v10                float64
 		//stakeIspayTwo      float64
 		//stakeIspayThree    float64
 		//stakeIspayFour     float64
@@ -970,6 +984,16 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		"stake_ispay_three",
 		"stake_ispay_four",
 		"stake_ispay_five",
+		"v_1",
+		"v_2",
+		"v_3",
+		"v_4",
+		"v_5",
+		"v_6",
+		"v_7",
+		"v_8",
+		"v_9",
+		"v_10",
 	)
 	if nil != err || nil == configs {
 		return &pb.UserInfoReply{
@@ -1100,6 +1124,36 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		//if "stake_ispay_five" == vConfig.KeyName {
 		//	stakeIspayFive, _ = strconv.ParseFloat(vConfig.Value, 10)
 		//}
+		if "v_1" == vConfig.KeyName {
+			v1, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_2" == vConfig.KeyName {
+			v2, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_3" == vConfig.KeyName {
+			v3, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_4" == vConfig.KeyName {
+			v4, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_5" == vConfig.KeyName {
+			v5, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_6" == vConfig.KeyName {
+			v6, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_7" == vConfig.KeyName {
+			v7, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_8" == vConfig.KeyName {
+			v8, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_9" == vConfig.KeyName {
+			v9, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_10" == vConfig.KeyName {
+			v10, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
 	}
 
 	if 0 >= bPrice {
@@ -1375,13 +1429,64 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		}, nil
 	}
 
+	var (
+		four uint64
+		five uint64
+		six  uint64
+	)
+
+	four, err = ac.userRepo.GetSumEthTwo(ctx)
+	if nil != err {
+		return &pb.UserInfoReply{
+			Status: "错误查询",
+		}, nil
+	}
+
+	five, err = ac.userRepo.GetSumEthTwoThree(ctx)
+	if nil != err {
+		return &pb.UserInfoReply{
+			Status: "错误查询",
+		}, nil
+	}
+
+	six, err = ac.userRepo.GetSumEthTwoThree(ctx)
+	if nil != err {
+		return &pb.UserInfoReply{
+			Status: "错误查询",
+		}, nil
+	}
+
+	tmpLevel := 0
+	tmpVip := user.Vip
+	if v10 <= user.MyTotalAmountNew || 10 == tmpVip {
+		tmpLevel = 10
+	} else if v9 <= user.MyTotalAmountNew || 9 == tmpVip {
+		tmpLevel = 9
+	} else if v8 <= user.MyTotalAmountNew || 8 == tmpVip {
+		tmpLevel = 8
+	} else if v7 <= user.MyTotalAmountNew || 7 == tmpVip {
+		tmpLevel = 7
+	} else if v6 <= user.MyTotalAmountNew || 6 == tmpVip {
+		tmpLevel = 6
+	} else if v5 <= user.MyTotalAmountNew || 5 == tmpVip {
+		tmpLevel = 5
+	} else if v4 <= user.MyTotalAmountNew || 4 == tmpVip {
+		tmpLevel = 4
+	} else if v3 <= user.MyTotalAmountNew || 3 == tmpVip {
+		tmpLevel = 3
+	} else if v2 <= user.MyTotalAmountNew || 2 == tmpVip {
+		tmpLevel = 2
+	} else if v1 <= user.MyTotalAmountNew || 1 == tmpVip {
+		tmpLevel = 1
+	}
+
 	return &pb.UserInfoReply{
 		Red:                       userRed,
 		ListM:                     resMessage,
 		Status:                    "ok",
 		CanLand:                   user.CanLand,
 		MyAddress:                 user.Address,
-		Level:                     user.Level,
+		Level:                     uint64(tmpLevel),
 		Giw:                       user.Giw,
 		Git:                       user.Git,
 		RecommendTotal:            uint64(len(myUserRecommend)),
@@ -1447,15 +1552,82 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		NewOne:                    user.MyTotalAmountNew,
 		NewTwo:                    yA,
 		NewThree:                  tA,
+		NewFour:                   four,
+		NewFive:                   five,
+		NewSix:                    six,
 	}, nil
 }
 
 func (ac *AppUsecase) UserRecommend(ctx context.Context, address string, req *pb.UserRecommendRequest) (*pb.UserRecommendReply, error) {
 	res := make([]*pb.UserRecommendReply_List, 0)
 	var (
-		user *User
-		err  error
+		user    *User
+		err     error
+		v1      float64
+		v2      float64
+		v3      float64
+		v4      float64
+		v5      float64
+		v6      float64
+		v7      float64
+		v8      float64
+		v9      float64
+		v10     float64
+		configs []*Config
 	)
+
+	// 配置
+	configs, err = ac.userRepo.GetConfigByKeys(ctx,
+		"v_1",
+		"v_2",
+		"v_3",
+		"v_4",
+		"v_5",
+		"v_6",
+		"v_7",
+		"v_8",
+		"v_9",
+		"v_10",
+	)
+	if nil != err || nil == configs {
+		return &pb.UserRecommendReply{
+			Status: "配置错误",
+		}, nil
+	}
+
+	for _, vConfig := range configs {
+		if "v_1" == vConfig.KeyName {
+			v1, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_2" == vConfig.KeyName {
+			v2, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_3" == vConfig.KeyName {
+			v3, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_4" == vConfig.KeyName {
+			v4, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_5" == vConfig.KeyName {
+			v5, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_6" == vConfig.KeyName {
+			v6, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_7" == vConfig.KeyName {
+			v7, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "g_8" == vConfig.KeyName {
+			v8, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_9" == vConfig.KeyName {
+			v9, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "v_10" == vConfig.KeyName {
+			v10, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+	}
+
 	user, err = ac.userRepo.GetUserByAddress(ctx, address) // 查询用户
 	if nil != err || nil == user {
 		return &pb.UserRecommendReply{
@@ -1507,9 +1679,33 @@ func (ac *AppUsecase) UserRecommend(ctx context.Context, address string, req *pb
 	}
 
 	for _, v := range usersMap {
+		tmpLevel := 0
+		tmpVip := user.Vip
+		if v10 <= user.MyTotalAmountNew || 10 == tmpVip {
+			tmpLevel = 10
+		} else if v9 <= user.MyTotalAmountNew || 9 == tmpVip {
+			tmpLevel = 9
+		} else if v8 <= user.MyTotalAmountNew || 8 == tmpVip {
+			tmpLevel = 8
+		} else if v7 <= user.MyTotalAmountNew || 7 == tmpVip {
+			tmpLevel = 7
+		} else if v6 <= user.MyTotalAmountNew || 6 == tmpVip {
+			tmpLevel = 6
+		} else if v5 <= user.MyTotalAmountNew || 5 == tmpVip {
+			tmpLevel = 5
+		} else if v4 <= user.MyTotalAmountNew || 4 == tmpVip {
+			tmpLevel = 4
+		} else if v3 <= user.MyTotalAmountNew || 3 == tmpVip {
+			tmpLevel = 3
+		} else if v2 <= user.MyTotalAmountNew || 2 == tmpVip {
+			tmpLevel = 2
+		} else if v1 <= user.MyTotalAmountNew || 1 == tmpVip {
+			tmpLevel = 1
+		}
+
 		res = append(res, &pb.UserRecommendReply_List{
 			Address:   v.Address,
-			Level:     v.Level,
+			Level:     uint64(tmpLevel),
 			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 		})
 	}
@@ -3182,6 +3378,36 @@ func (ac *AppUsecase) UserIndexList(ctx context.Context, address string, req *pb
 		Status: "ok",
 		Count:  9,
 		List:   res,
+	}, nil
+}
+
+// UserRankList UserRankList.
+func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.UserOrderListRequest) (*pb.UserOrderListReply, error) {
+
+	var (
+		err   error
+		users []*User
+	)
+	users, err = ac.userRepo.GetUsersLimitUsdtTotal(ctx)
+	if nil != err {
+		return &pb.UserOrderListReply{
+			Status: "查询错误",
+		}, nil
+	}
+
+	res := make([]*pb.UserOrderListReply_List, 0)
+	for _, v := range users {
+		res = append(res, &pb.UserOrderListReply_List{
+			Address: v.Address,
+			Git:     v.AmountUsdtTotal,
+			Red:     0,
+		})
+	}
+
+	return &pb.UserOrderListReply{
+		Count:  8,
+		List:   res,
+		Status: "ok",
 	}, nil
 }
 
@@ -8412,7 +8638,7 @@ func GetReservers() (float64, float64, error) {
 			continue
 		}
 
-		contractAddress := "0xCa4122dE1Ad3f3063DF012732a802026905515D0"
+		contractAddress := "0x3c987dA0C102f5E7e9a3282568e41a90f7ceD424"
 
 		tokenAddress := common.HexToAddress(contractAddress)
 		instance, err := NewPair(tokenAddress, client)

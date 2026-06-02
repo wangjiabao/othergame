@@ -570,6 +570,7 @@ func (u *UserRepo) GetUserByUserIds(ctx context.Context, userIds []uint64) (map[
 			OutNum:           user.OutNum,
 			Vip:              user.Vip,
 			VipAdmin:         user.VipAdmin,
+			MyTotalAmountNew: user.MyTotalAmountNew,
 		}
 	}
 	return res, nil
@@ -1372,31 +1373,21 @@ func (u *UserRepo) GetUserRewardPage(ctx context.Context, userId uint64, reason 
 func (u *UserRepo) GetUserRewardFourT(ctx context.Context, userId uint64) (float64, error) {
 	var totalStakeRate float64
 
-	now := time.Now()
+	now := time.Now().UTC()
+	var startDate time.Time
+	if 16 <= now.Hour() {
+		startDate = now
+	} else {
+		startDate = now.AddDate(0, 0, -1)
+	}
 
-	// 昨日 00:00:00
-	yesterdayStart := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day(),
-		0, 0, 0, 0,
-		now.Location(),
-	)
-
-	// 昨日 23:59:59
-	yesterdayEnd := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day(),
-		23, 59, 59, 0,
-		now.Location(),
-	)
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
 
 	if err := u.data.DB(ctx).
 		Table("reward_four").
 		Where("user_id=?", userId).
-		Where("created_at >= ?", yesterdayStart).
-		Where("created_at <= ?", yesterdayEnd).
+		Where("created_at >= ?", todayStart).
+		Where("created_at <= ?", now).
 		Select("IFNULL(SUM(amount), 0)").
 		Scan(&totalStakeRate).Error; err != nil {
 		return 0, errors.New(500, "ETH_TWO_SUM_ERROR", err.Error())
@@ -1409,31 +1400,25 @@ func (u *UserRepo) GetUserRewardFourT(ctx context.Context, userId uint64) (float
 func (u *UserRepo) GetUserRewardFour(ctx context.Context, userId uint64) (float64, error) {
 	var totalStakeRate float64
 
-	now := time.Now()
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+	if 16 <= now.Hour() {
+		startDate = now.AddDate(0, 0, -1)
+		endDate = now
+	} else {
+		startDate = now.AddDate(0, 0, -2)
+		endDate = now.AddDate(0, 0, -1)
+	}
 
-	// 昨日 00:00:00
-	yesterdayStart := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day()-1,
-		0, 0, 0, 0,
-		now.Location(),
-	)
-
-	// 昨日 23:59:59
-	yesterdayEnd := time.Date(
-		now.Year(),
-		now.Month(),
-		now.Day()-1,
-		23, 59, 59, 0,
-		now.Location(),
-	)
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
 
 	if err := u.data.DB(ctx).
 		Table("reward_four").
 		Where("user_id=?", userId).
-		Where("created_at >= ?", yesterdayStart).
-		Where("created_at <= ?", yesterdayEnd).
+		Where("created_at >= ?", todayStart).
+		Where("created_at <= ?", todayEnd).
 		Select("IFNULL(SUM(amount), 0)").
 		Scan(&totalStakeRate).Error; err != nil {
 		return 0, errors.New(500, "ETH_TWO_SUM_ERROR", err.Error())
@@ -4553,6 +4538,158 @@ func (u *UserRepo) Withdraw(ctx context.Context, userId uint64, giw, relGiw floa
 	}
 
 	return nil
+}
+
+// GetUsersLimitUsdtTotal .
+func (u *UserRepo) GetUsersLimitUsdtTotal(ctx context.Context) ([]*biz.User, error) {
+	var users []*User
+
+	res := make([]*biz.User, 0)
+	if err := u.data.DB(ctx).Table("user").Order("amount_usdt_total desc").Limit(8).Find(&users).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, nil
+		}
+
+		return nil, errors.New(500, "USER ERROR", err.Error())
+	}
+
+	for _, user := range users {
+		res = append(res, &biz.User{
+			ID:               user.ID,
+			Address:          user.Address,
+			Level:            user.Level,
+			Giw:              user.Giw,
+			GiwAdd:           user.GiwAdd,
+			Git:              user.Git,
+			Total:            user.Total,
+			TotalOne:         user.TotalOne,
+			TotalTwo:         user.TotalTwo,
+			TotalThree:       user.TotalThree,
+			CreatedAt:        user.CreatedAt,
+			UpdatedAt:        user.UpdatedAt,
+			RewardOne:        user.RewardOne,
+			RewardTwo:        user.RewardTwo,
+			RewardThree:      user.RewardThree,
+			RewardTwoOne:     user.RewardTwoOne,
+			RewardTwoTwo:     user.RewardTwoTwo,
+			RewardTwoThree:   user.RewardTwoThree,
+			RewardThreeOne:   user.RewardThreeOne,
+			RewardThreeTwo:   user.RewardThreeTwo,
+			RewardThreeThree: user.RewardThreeThree,
+			Location:         user.Location,
+			Recommend:        user.Recommend,
+			RecommendTwo:     user.RecommendTwo,
+			All:              user.AllNum,
+			Area:             user.Area,
+			AreaTwo:          user.AreaTwo,
+			Amount:           user.Amount,
+			AmountGet:        user.AmountGet,
+			AmountUsdt:       user.AmountUsdt,
+			MyTotalAmount:    user.MyTotalAmount,
+			OutNum:           user.OutNum,
+			Vip:              user.Vip,
+			VipAdmin:         user.VipAdmin,
+			LockReward:       user.LockReward,
+			AmountUsdtTotal:  user.AmountUsdtTotal,
+		})
+	}
+
+	return res, nil
+}
+
+// GetSumEthTwoThree GetSumEthTwoThree
+func (u *UserRepo) GetSumEthTwoFour(ctx context.Context) (uint64, error) {
+	var totalStakeRate uint64
+
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+
+	if 16 <= now.Hour() {
+		startDate = now
+		endDate = now
+	} else {
+		startDate = now.AddDate(0, 0, -1)
+		endDate = now
+	}
+
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
+
+	if err := u.data.DB(ctx).
+		Table("withdraw").
+		Where("created_at >= ?", todayStart).
+		Where("created_at < ?", todayEnd).
+		Where("coin=?", "usdt").
+		Select("IFNULL(SUM(amount), 0)").
+		Scan(&totalStakeRate).Error; err != nil {
+		return 0, errors.New(500, "ETH_TWO_SUM_ERROR", err.Error())
+	}
+
+	return totalStakeRate, nil
+}
+
+// GetSumEthTwoThree GetSumEthTwoThree
+func (u *UserRepo) GetSumEthTwoThree(ctx context.Context) (uint64, error) {
+	var totalStakeRate uint64
+
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+
+	if 16 <= now.Hour() {
+		startDate = now.AddDate(0, 0, -2)
+		endDate = now.AddDate(0, 0, -1)
+	} else {
+		startDate = now.AddDate(0, 0, -3)
+		endDate = now.AddDate(0, 0, -2)
+	}
+
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
+
+	if err := u.data.DB(ctx).
+		Table("withdraw").
+		Where("created_at >= ?", todayStart).
+		Where("created_at < ?", todayEnd).
+		Where("coin=?", "usdt").
+		Select("IFNULL(SUM(amount), 0)").
+		Scan(&totalStakeRate).Error; err != nil {
+		return 0, errors.New(500, "ETH_TWO_SUM_ERROR", err.Error())
+	}
+
+	return totalStakeRate, nil
+}
+
+// GetSumEthTwo GetSumEthTwo
+func (u *UserRepo) GetSumEthTwo(ctx context.Context) (uint64, error) {
+	var totalStakeRate uint64
+
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+	if 16 <= now.Hour() {
+		startDate = now.AddDate(0, 0, -1)
+		endDate = now
+	} else {
+		startDate = now.AddDate(0, 0, -2)
+		endDate = now.AddDate(0, 0, -1)
+	}
+
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
+
+	if err := u.data.DB(ctx).
+		Table("withdraw").
+		Where("created_at >= ?", todayStart).
+		Where("created_at < ?", todayEnd).
+		Where("coin=?", "usdt").
+		Select("IFNULL(SUM(amount), 0)").
+		Scan(&totalStakeRate).Error; err != nil {
+		return 0, errors.New(500, "ETH_TWO_SUM_ERROR", err.Error())
+	}
+
+	return totalStakeRate, nil
 }
 
 // WithdrawTwo .

@@ -168,6 +168,12 @@ service App {
 		};
 	};
 
+	rpc UserRankList (UserOrderListRequest) returns (UserOrderListReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/user_rank_list"
+		};
+	};
+
 	// 提现
 	rpc BuyTwo (BuyTwoRequest) returns (BuyTwoReply) {
 		option (google.api.http) = {
@@ -536,6 +542,9 @@ message UserInfoReply {
 	double newOne = 1293;
 	double newTwo = 1294;
 	double newThree = 1295;
+	uint64 newFour = 1296;
+	uint64 newFive = 1297;
+	uint64 newSix = 1298;
 }
 
 message UserBuyRequest {
