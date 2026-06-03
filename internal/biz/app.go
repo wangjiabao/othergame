@@ -3492,6 +3492,10 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 
 	res := make([]*pb.UserOrderListReply_List, 0)
 	for k, v := range users {
+		if 0.0001 > v.AmountUsdtTotal {
+			continue
+		}
+
 		var tmpReward float64
 		if 0 == k {
 			tmpReward = g1 * tmpTotal
@@ -8582,7 +8586,7 @@ func (ac *AppUsecase) StakeGetPlay(ctx context.Context, address string, req *pb.
 		}
 
 		return &pb.StakeGetPlayReply{Status: "ok", PlayStatus: 1, Amount: tmpGit}, nil
-	} else { // 输：下注金额加入池子
+	} else {                                                         // 输：下注金额加入池子
 		if err = ac.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 			err = ac.userRepo.SetStakeGetPlaySub(ctx, user.ID, float64(req.SendBody.Amount))
 			if nil != err {
