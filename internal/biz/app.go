@@ -3605,6 +3605,7 @@ func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *p
 		}, nil
 	}
 
+	fmt.Println(user.ID)
 	var (
 		reward []*Reward
 	)
