@@ -3591,9 +3591,8 @@ func (ac *AppUsecase) UserTeamDepositList(ctx context.Context, address string, r
 func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *pb.UserRewardListRequest) (*pb.UserRewardListReply, error) {
 	res := make([]*pb.UserRewardListReply_List, 0)
 	var (
-		count  int64
-		err    error
-		userId uint64
+		count int64
+		err   error
 	)
 
 	var (
@@ -3616,7 +3615,7 @@ func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *p
 		}, nil
 	}
 
-	reward, err = ac.userRepo.GetUserRewardAdminPage(ctx, userId, 27, &Pagination{
+	reward, err = ac.userRepo.GetUserRewardAdminPage(ctx, user.ID, 27, &Pagination{
 		PageNum:  int(req.Page),
 		PageSize: 20,
 	})
