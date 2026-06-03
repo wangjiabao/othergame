@@ -4678,16 +4678,8 @@ func (u *UserRepo) GetUserRewardAdminPage(ctx context.Context, userId uint64, re
 	)
 
 	res := make([]*biz.Reward, 0)
-	instance := u.data.DB(ctx).Table("reward").Order("id desc").
-		Scopes(Paginate(b.PageNum, b.PageSize))
-
-	if 0 < userId {
-		instance = instance.Where("user_id = ?", userId)
-	}
-
-	if 0 < reason {
-		instance = instance.Where("reason=?", reason)
-	}
+	instance := u.data.DB(ctx).Table("reward").
+		Where("user_id=?", userId).Where("reason=?", reason).Scopes(Paginate(b.PageNum, b.PageSize)).Order("id desc")
 
 	if err := instance.Find(&rewards).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

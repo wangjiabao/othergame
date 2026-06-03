@@ -3474,7 +3474,7 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 		}, nil
 	}
 
-	fmt.Println("昨日入u", yAmount)
+	//fmt.Println("昨日入u", yAmount)
 	var (
 		yAmountTwo uint64
 	)
@@ -3485,10 +3485,10 @@ func (ac *AppUsecase) UserRankList(ctx context.Context, address string, req *pb.
 			Status: "查询错误",
 		}, nil
 	}
-	fmt.Println("前日入u", yAmountTwo)
+	//fmt.Println("前日入u", yAmountTwo)
 
 	tmpTotal := float64(yAmount)*0.03 + float64(yAmountTwo)*0.02
-	fmt.Println("合计", tmpTotal)
+	//fmt.Println("合计", tmpTotal)
 
 	res := make([]*pb.UserOrderListReply_List, 0)
 	for k, v := range users {
@@ -3605,7 +3605,6 @@ func (ac *AppUsecase) UserRewardList(ctx context.Context, address string, req *p
 		}, nil
 	}
 
-	fmt.Println(user.ID)
 	var (
 		reward []*Reward
 	)
