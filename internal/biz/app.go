@@ -1465,7 +1465,7 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		}, nil
 	}
 
-	six, err = ac.userRepo.GetSumEthTwoThree(ctx)
+	six, err = ac.userRepo.GetSumEthTwoFour(ctx)
 	if nil != err {
 		return &pb.UserInfoReply{
 			Status: "错误查询",
