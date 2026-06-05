@@ -1111,7 +1111,7 @@ message SellRequest {
 		uint64 id = 1; // 出售id
 		uint64 num = 5; // 出售1，下架2
 		uint64 sellType = 3; // 出售类型，1种子，2道具，3土地
-		uint64 amount = 4; // 出售价格
+		double amount = 4; // 出售价格
 		string sign = 2; // 签名
 		string landIds = 6; // 土地id 1&2&3
 	}

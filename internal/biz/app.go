@@ -6704,7 +6704,7 @@ func (ac *AppUsecase) Sell(ctx context.Context, address string, req *pb.SellRequ
 		}, nil
 	}
 
-	tmpSellAmount := float64(req.SendBody.Amount)
+	tmpSellAmount := req.SendBody.Amount
 	if 1 == req.SendBody.Num {
 		if 0 >= tmpSellAmount {
 			return &pb.SellReply{
