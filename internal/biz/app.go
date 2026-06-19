@@ -5677,17 +5677,17 @@ func (ac *AppUsecase) LandPlaySix(ctx context.Context, address string, req *pb.L
 		}, nil
 	}
 
-	if landUserUse.OwnerUserId != user.ID {
-		return &pb.LandPlaySixReply{
-			Status: "非土地用户",
-		}, nil
-	}
-
-	if landUserUse.UserId == user.ID {
-		return &pb.LandPlaySixReply{
-			Status: "非出租土地",
-		}, nil
-	}
+	//if landUserUse.OwnerUserId != user.ID {
+	//	return &pb.LandPlaySixReply{
+	//		Status: "非土地用户",
+	//	}, nil
+	//}
+	//
+	//if landUserUse.UserId == user.ID {
+	//	return &pb.LandPlaySixReply{
+	//		Status: "非出租土地",
+	//	}, nil
+	//}
 
 	if 1 != landUserUse.Status {
 		return &pb.LandPlaySixReply{
@@ -5696,23 +5696,22 @@ func (ac *AppUsecase) LandPlaySix(ctx context.Context, address string, req *pb.L
 	}
 
 	// 必须先清理了，才能铲除
-	if 0 < landUserUse.One {
-		return &pb.LandPlaySixReply{
-			Status: "暂停生长不能铲除",
-		}, nil
-	} else if 0 < landUserUse.Two {
-		return &pb.LandPlaySixReply{
-			Status: "蛀虫状态不能铲除",
-		}, nil
-	}
-
-	//current := time.Now().Unix()
-	// todo
-	//if uint64(current) < landUserUse.OverTime+3600 {
+	//if 0 < landUserUse.One {
 	//	return &pb.LandPlaySixReply{
-	//		Status: "成熟1小时后可以铲除",
+	//		Status: "暂停生长不能铲除",
+	//	}, nil
+	//} else if 0 < landUserUse.Two {
+	//	return &pb.LandPlaySixReply{
+	//		Status: "蛀虫状态不能铲除",
 	//	}, nil
 	//}
+
+	current := time.Now().Unix()
+	if uint64(current) < landUserUse.OverTime {
+		return &pb.LandPlaySixReply{
+			Status: "成熟后可以铲除|over time limit",
+		}, nil
+	}
 
 	one := uint64(0)
 	if 1 <= prop.TwoOne {
@@ -8586,7 +8585,7 @@ func (ac *AppUsecase) StakeGetPlay(ctx context.Context, address string, req *pb.
 		}
 
 		return &pb.StakeGetPlayReply{Status: "ok", PlayStatus: 1, Amount: tmpGit}, nil
-	} else {                                                         // 输：下注金额加入池子
+	} else { // 输：下注金额加入池子
 		if err = ac.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 			err = ac.userRepo.SetStakeGetPlaySub(ctx, user.ID, float64(req.SendBody.Amount))
 			if nil != err {
