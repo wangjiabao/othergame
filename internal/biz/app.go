@@ -574,7 +574,7 @@ type UserRepo interface {
 	SetStakeGetSub(ctx context.Context, userId uint64, git, amount float64) error
 	SetStakeGetPlaySub(ctx context.Context, userId uint64, amount float64) error
 	SetStakeGetPlay(ctx context.Context, userId uint64, git, amount float64) error
-	SetStakeGit(ctx context.Context, userId uint64, amount, amountTwo, usdtAmountOrigin float64, day uint64) error
+	SetStakeGit(ctx context.Context, userId uint64, amount, amountTwo, usdtAmountOrigin, price float64, day uint64) error
 	GetStakeGitRecordsByUserIDQueue(ctx context.Context, userID uint64, b *Pagination) ([]*StakeGitRecord, error)
 	GetStakeGitRecordsByUserIDQueueCount(ctx context.Context, userId uint64) (int64, error)
 	GetStakeGitRecordsByUserIDQueueToday(ctx context.Context) (float64, error)
@@ -7236,6 +7236,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 			}, nil
 		}
 
+		tmpPrice := float64(0)
 		if 1 == stakePriceOn {
 			usdtAmount = req.SendBody.Amount * stakePrice
 			usdtAmountOrigin = usdtAmount
@@ -7245,6 +7246,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 					Status: "获取交易池数据失败，价格错误",
 				}, nil
 			}
+			tmpPrice = stakePrice
 		} else {
 			usdtAmount = req.SendBody.Amount * newIspayPrice
 			usdtAmountOrigin = usdtAmount
@@ -7254,6 +7256,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 					Status: "获取交易池数据失败，价格错误",
 				}, nil
 			}
+			tmpPrice = newIspayPrice
 		}
 
 		dayLimit := uint64(30)
@@ -7274,7 +7277,7 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 		//}
 
 		if err = ac.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
-			err = ac.userRepo.SetStakeGit(ctx, user.ID, req.SendBody.Amount, usdtAmount, usdtAmountOrigin, dayLimit)
+			err = ac.userRepo.SetStakeGit(ctx, user.ID, req.SendBody.Amount, usdtAmount, usdtAmountOrigin, tmpPrice, dayLimit)
 			if nil != err {
 				return err
 			}

@@ -210,6 +210,7 @@ type StakeGitRecordTwo struct {
 	CreatedAt   time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt   time.Time `gorm:"type:datetime;not null"`
 	Day         uint64    `gorm:"type:int;not null;"`
+	Price       float64   `gorm:"type:decimal(65,18);not null;default:0.0"`
 }
 
 type BuyLand struct {
@@ -4279,7 +4280,7 @@ func (u *UserRepo) GetStakeGitRecordsByUserIDQueue(ctx context.Context, userID u
 }
 
 // SetStakeGit .
-func (u *UserRepo) SetStakeGit(ctx context.Context, userId uint64, amount, amountTwo, usdtAmountOrigin float64, day uint64) error {
+func (u *UserRepo) SetStakeGit(ctx context.Context, userId uint64, amount, amountTwo, usdtAmountOrigin, price float64, day uint64) error {
 	res := u.data.DB(ctx).Table("user").Where("id=?", userId).Where("git_new>=?", amount).
 		Updates(map[string]interface{}{
 			"git_new": gorm.Expr("git_new - ?", amount),
@@ -4297,6 +4298,7 @@ func (u *UserRepo) SetStakeGit(ctx context.Context, userId uint64, amount, amoun
 	stakeRecord.UserId = userId
 	stakeRecord.StakeType = 1
 	stakeRecord.Day = day
+	stakeRecord.Price = price
 
 	res = u.data.DB(ctx).Table("stake_git_record_ispay_queue").Create(&stakeRecord)
 	if res.Error != nil {
