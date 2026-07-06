@@ -1709,26 +1709,26 @@ func (ac *AppUsecase) UserRecommend(ctx context.Context, address string, req *pb
 
 	for _, v := range usersMap {
 		tmpLevel := 0
-		tmpVip := user.Vip
-		if v10 <= user.MyTotalAmountNew || 10 == tmpVip {
+		tmpVip := v.Vip
+		if v10 <= v.MyTotalAmountNew || 10 == tmpVip {
 			tmpLevel = 10
-		} else if v9 <= user.MyTotalAmountNew || 9 == tmpVip {
+		} else if v9 <= v.MyTotalAmountNew || 9 == tmpVip {
 			tmpLevel = 9
-		} else if v8 <= user.MyTotalAmountNew || 8 == tmpVip {
+		} else if v8 <= v.MyTotalAmountNew || 8 == tmpVip {
 			tmpLevel = 8
-		} else if v7 <= user.MyTotalAmountNew || 7 == tmpVip {
+		} else if v7 <= v.MyTotalAmountNew || 7 == tmpVip {
 			tmpLevel = 7
-		} else if v6 <= user.MyTotalAmountNew || 6 == tmpVip {
+		} else if v6 <= v.MyTotalAmountNew || 6 == tmpVip {
 			tmpLevel = 6
-		} else if v5 <= user.MyTotalAmountNew || 5 == tmpVip {
+		} else if v5 <= v.MyTotalAmountNew || 5 == tmpVip {
 			tmpLevel = 5
-		} else if v4 <= user.MyTotalAmountNew || 4 == tmpVip {
+		} else if v4 <= v.MyTotalAmountNew || 4 == tmpVip {
 			tmpLevel = 4
-		} else if v3 <= user.MyTotalAmountNew || 3 == tmpVip {
+		} else if v3 <= v.MyTotalAmountNew || 3 == tmpVip {
 			tmpLevel = 3
-		} else if v2 <= user.MyTotalAmountNew || 2 == tmpVip {
+		} else if v2 <= v.MyTotalAmountNew || 2 == tmpVip {
 			tmpLevel = 2
-		} else if v1 <= user.MyTotalAmountNew || 1 == tmpVip {
+		} else if v1 <= v.MyTotalAmountNew || 1 == tmpVip {
 			tmpLevel = 1
 		}
 
