@@ -945,6 +945,8 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		//stakeIspayThree    float64
 		//stakeIspayFour     float64
 		//stakeIspayFive     float64
+		stakePrice   float64
+		stakePriceOn uint64
 	)
 	user, err = ac.userRepo.GetUserByAddress(ctx, address) // 查询用户
 	if nil != err || nil == user {
@@ -1012,6 +1014,8 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		"v_8",
 		"v_9",
 		"v_10",
+		"stake_price",
+		"stake_price_on",
 	)
 	if nil != err || nil == configs {
 		return &pb.UserInfoReply{
@@ -1171,6 +1175,12 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 		}
 		if "v_10" == vConfig.KeyName {
 			v10, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "stake_price" == vConfig.KeyName {
+			stakePrice, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "stake_price_on" == vConfig.KeyName {
+			stakePriceOn, _ = strconv.ParseUint(vConfig.Value, 10, 64)
 		}
 	}
 
@@ -1431,12 +1441,16 @@ func (ac *AppUsecase) UserInfo(ctx context.Context, address string) (*pb.UserInf
 	var (
 		newIspayPrice float64
 	)
-	newIspayPrice, err = GetIspayPrice()
-	if nil != err || 0.0000001 > newIspayPrice {
-		fmt.Println(err, newIspayPrice, "err ispay price")
-		//return &pb.UserInfoReply{
-		//	Status: "错误查询",
-		//}, nil
+	if 1 == stakePriceOn {
+		newIspayPrice = stakePrice
+	} else {
+		newIspayPrice, err = GetIspayPrice()
+		if nil != err || 0.0000001 > newIspayPrice {
+			fmt.Println(err, newIspayPrice, "err ispay price")
+			//return &pb.UserInfoReply{
+			//	Status: "错误查询",
+			//}, nil
+		}
 	}
 
 	var (
@@ -4132,10 +4146,12 @@ func (ac *AppUsecase) OpenBox(ctx context.Context, address string, req *pb.OpenB
 	}
 
 	var (
-		configs      []*Config
-		priceOpen    float64
-		priceOpenUse uint64
+		configs []*Config
+		//priceOpen    float64
+		//priceOpenUse uint64
 		usdtAmount   float64
+		stakePrice   float64
+		stakePriceOn uint64
 	)
 
 	// 配置
@@ -4143,6 +4159,8 @@ func (ac *AppUsecase) OpenBox(ctx context.Context, address string, req *pb.OpenB
 		"open_box_price",
 		"open_box_price_use",
 		"box_amount",
+		"stake_price",
+		"stake_price_on",
 	)
 	if nil != err || nil == configs {
 		return &pb.OpenBoxReply{
@@ -4151,22 +4169,29 @@ func (ac *AppUsecase) OpenBox(ctx context.Context, address string, req *pb.OpenB
 	}
 
 	for _, vConfig := range configs {
-		if "open_box_price" == vConfig.KeyName {
-			priceOpen, _ = strconv.ParseFloat(vConfig.Value, 10)
-		}
-
-		if "open_box_price_use" == vConfig.KeyName {
-			priceOpenUse, _ = strconv.ParseUint(vConfig.Value, 10, 64)
-		}
+		//if "open_box_price" == vConfig.KeyName {
+		//	priceOpen, _ = strconv.ParseFloat(vConfig.Value, 10)
+		//}
+		//
+		//if "open_box_price_use" == vConfig.KeyName {
+		//	priceOpenUse, _ = strconv.ParseUint(vConfig.Value, 10, 64)
+		//}
 
 		if "box_amount" == vConfig.KeyName {
 			usdtAmount, _ = strconv.ParseFloat(vConfig.Value, 10)
 		}
+
+		if "stake_price" == vConfig.KeyName {
+			stakePrice, _ = strconv.ParseFloat(vConfig.Value, 10)
+		}
+		if "stake_price_on" == vConfig.KeyName {
+			stakePriceOn, _ = strconv.ParseUint(vConfig.Value, 10, 64)
+		}
 	}
 
 	var ispay float64
-	if 0 == priceOpenUse {
-		ispay = usdtAmount / priceOpen
+	if 1 == stakePriceOn {
+		ispay = usdtAmount / stakePrice
 	} else {
 		//var (
 		//	tmp0 float64
@@ -7225,17 +7250,6 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 		//	}, nil
 		//}
 
-		var (
-			newIspayPrice float64
-		)
-		newIspayPrice, err = GetIspayPrice()
-		if nil != err || 0.0000001 > newIspayPrice {
-			fmt.Println(err, newIspayPrice, "err stake ispay price")
-			return &pb.StakeGitReply{
-				Status: "获取交易池数据失败",
-			}, nil
-		}
-
 		tmpPrice := float64(0)
 		if 1 == stakePriceOn {
 			usdtAmount = req.SendBody.Amount * stakePrice
@@ -7248,6 +7262,17 @@ func (ac *AppUsecase) StakeGit(ctx context.Context, address string, req *pb.Stak
 			}
 			tmpPrice = stakePrice
 		} else {
+			var (
+				newIspayPrice float64
+			)
+			newIspayPrice, err = GetIspayPrice()
+			if nil != err || 0.0000001 > newIspayPrice {
+				fmt.Println(err, newIspayPrice, "err stake ispay price")
+				return &pb.StakeGitReply{
+					Status: "获取交易池数据失败",
+				}, nil
+			}
+
 			usdtAmount = req.SendBody.Amount * newIspayPrice
 			usdtAmountOrigin = usdtAmount
 			usdtAmount = usdtAmount * stakeRateNew / 30
